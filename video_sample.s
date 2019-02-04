@@ -15,18 +15,14 @@
 @ that can be easily programmed via mailbox interface
 
 .section .text
-.globl _video_sample
+.globl _video_init
 .align 2
 
 @@@@@@@@@@@@@@ START @@@@@@@@@@@@@
 
-_video_sample:
+_video_init:
 	push {lr}
-    @ Store my params for where to put the pixel
-    @ In registers that I wont be touching until
-    mov r7, r0
-    mov r8, r1
-    mov r9, r2
+
     @ set Video Controller resolution to 640x480x16bit
     @ 16-bit, cause the 8-bit depth needs a palette
     @ and I'm too lazy to set it up
@@ -47,9 +43,6 @@ _video_sample:
     ldr r0, [r1, #20]
     cmp r0, #0
     beq .vc_init_fail
-
-	@ draw my pixel
-	bl vc_draw_pixel
     
 	pop {pc}
 
@@ -158,16 +151,15 @@ mb0_c8_read:
     mov pc, lr
 
 @TONY try to draw a pixel on the screen
-@r0 - frame buffer address, ie the top left pixel
-@Screen goes from left=0 to right=1279
-@Screen goes from top=0 to bottom= ??
-vc_draw_pixel:
+.globl _v_draw_pixel
+_v_draw_pixel:
 	fb    .req r0
-	width .req r2
-	pixl  .req r3
-	inx   .req r7
-	iny   .req r8
-    color .req r9
+    inx   .req r1
+	iny   .req r2
+    color .req r3
+	width .req r4
+	pixl  .req r5
+
     ldr color, =#0xFFFFFFFF
 	ldr width, =#1280
 

@@ -26,7 +26,8 @@ uint32_t memory_read(uint32_t);
 void memory_write(uint32_t, uint32_t );
 
 void delay(int32_t);
-void _video_sample(uint32_t, uint32_t, uint32_t);
+uint32_t _video_init(void);
+void _v_draw_pixel(uint32_t,uint32_t,uint32_t,uint32_t);
 
 //HAL - Serial
 void hal_io_serial_init(void);
@@ -34,11 +35,11 @@ void hal_io_serial_putc(uint8_t);
 uint8_t hal_io_serial_getc(void);
 
 //HAL - Video
-void hal_io_video_init(void);
-void hal_io_video_putpixel(int x, int y, int color);
-void hal_io_video_putc(int x, int y, int color, uint8_t character);
+uint32_t hal_io_video_init(void);
+void hal_io_video_putpixel(int,int,int,int);
+void hal_io_video_putc(int,int, int,int,uint8_t);
 
-void draw_os_name_to_video(void);
+void draw_os_name_to_video(int);
 
 /*
  *		Kernel's entry point
@@ -50,26 +51,28 @@ int cursor_y = 0;
 
 void main(uint32_t r0, uint32_t r1, uint32_t atags){
 
-	draw_os_name_to_video();
+	uint32_t fb = hal_io_video_init();
+
+	draw_os_name_to_video(fb);
 
 	//Begin the one-line typewriter
 	hal_io_serial_init();
 	while (1){
 		char c = hal_io_serial_getc();
-		cursor_drawc(c);
+		cursor_drawc(fb, c);
 		hal_io_serial_putc(c);
 	}
 }
 
-void hal_io_video_init(){
-	_video_sample(0,0,0);
+uint32_t hal_io_video_init(){
+	return _video_init();
 }
 
-void hal_io_video_putpixel(int x, int y, int color){
-	_video_sample(x, y, color);
+void hal_io_video_putpixel(int fb, int x, int y, int color){
+	_v_draw_pixel(fb, x, y, color);
 }
 
-void hal_io_video_putc(int x, int y, int color, uint8_t character){
+void hal_io_video_putc(int fb, int x, int y, int color, uint8_t character){
 	switch(character){
 		case ' ':
 			break;
@@ -78,91 +81,91 @@ void hal_io_video_putc(int x, int y, int color, uint8_t character){
 			cursor_newln();
 			break;
 		case 'a' : case 'A':
-			draw_A(x, y, color);
+			draw_A(fb, x, y, color);
 			break;
 		case 'b' : case 'B':
-			draw_B(x, y, color);
+			draw_B(fb, x, y, color);
 			break;
 		case 'c' : case 'C':
-			draw_C(x, y, color);
+			draw_C(fb, x, y, color);
 			break;
 		case 'd' : case 'D':
-			draw_D(x, y, color);
+			draw_D(fb, x, y, color);
 			break;
 		case 'e' : case 'E':
-			draw_E(x, y, color);
+			draw_E(fb, x, y, color);
 			break;
 		case 'f' : case 'F':
-			draw_F(x, y, color);
+			draw_F(fb, x, y, color);
 			break;
 		case 'g' : case 'G':
-			draw_G(x, y, color);
+			draw_G(fb, x, y, color);
 			break;
 		case 'h' : case 'H':
-			draw_H(x, y, color);
+			draw_H(fb, x, y, color);
 			break;
 		case 'i' : case 'I':
-			draw_I(x, y, color);
+			draw_I(fb, x, y, color);
 			break;
 		case 'j' : case 'J':
-			draw_J(x, y, color);
+			draw_J(fb, x, y, color);
 			break;
 		case 'l' : case 'L':
-			draw_L(x, y, color);
+			draw_L(fb, x, y, color);
 			break;
 		case 'm' : case 'M':
-			draw_M(x, y, color);
+			draw_M(fb, x, y, color);
 			break;
 		case 'o' : case 'O':
-			draw_O(x, y, color);
+			draw_O(fb, x, y, color);
 			break;
 		case 'n' : case 'N':
-			draw_N(x, y, color);
+			draw_N(fb, x, y, color);
 			break;
 		case 'k' : case 'K':
-			draw_K(x, y, color);
+			draw_K(fb, x, y, color);
 			break;
 		case 'p' : case 'P':
-			draw_P(x, y, color);
+			draw_P(fb, x, y, color);
 			break;
 		case 'q' : case 'Q':
-			draw_Q(x, y, color);
+			draw_Q(fb, x, y, color);
 			break;
 		case 'r' : case 'R':
-			draw_R(x, y, color);
+			draw_R(fb, x, y, color);
 			break;
 		case 's' : case 'S':
-			draw_S(x, y, color);
+			draw_S(fb, x, y, color);
 			break;
 		case 't' : case 'T':
-			draw_T(x, y, color);
+			draw_T(fb, x, y, color);
 			break;
 		case 'u' : case 'U':
-			draw_U(x, y, color);
+			draw_U(fb, x, y, color);
 			break;
 		case 'v' : case 'V':
-			draw_V(x, y, color);
+			draw_V(fb, x, y, color);
 			break;
 		case 'w' : case 'W':
-			draw_W(x, y, color);
+			draw_W(fb, x, y, color);
 			break;
 		case 'x' : case 'X':
-			draw_X(x, y, color);
+			draw_X(fb, x, y, color);
 			break;
 		case 'y' : case 'Y':
-			draw_Y(x, y, color);
+			draw_Y(fb, x, y, color);
 			break;
 		case 'z' : case 'Z':
-			draw_Z(x, y, color);
+			draw_Z(fb, x, y, color);
 			break;
 		case '0':
-			draw_0(x, y, color);
+			draw_0(fb, x, y, color);
 			break;
 		case '1':
-			draw_1(x, y, color);
+			draw_1(fb, x, y, color);
 			break;
 		default:
-			draw_non_char(x, y, color);
+			draw_non_char(fb, x, y, color);
 	}
 }
 
@@ -261,261 +264,261 @@ void uart_init(void){
 }
  
  
-void draw_char_pipe_left(int x, int y, int color){
+void draw_char_pipe_left(int fb, int x, int y, int color){
 	for (int row = 0; row < CHAR_H; ++row) {
-		hal_io_video_putpixel(x, y + row, color);
+		hal_io_video_putpixel(fb, x, y + row, color);
 	}
 }
 
-void draw_char_pipe_right(int x, int y, int color){
+void draw_char_pipe_right(int fb, int x, int y, int color){
 	for (int row = 0; row < CHAR_H; ++row) {
-		hal_io_video_putpixel(x + CHAR_W, y + row, color);
+		hal_io_video_putpixel(fb, x + CHAR_W, y + row, color);
 	}
 }
 
-void draw_char_pipe_mid(int x, int y, int color){
+void draw_char_pipe_mid(int fb, int x, int y, int color){
 	for (int row = 0; row <= CHAR_H; ++row) {
-		hal_io_video_putpixel(x + CHAR_W/2, y + row, color);
+		hal_io_video_putpixel(fb, x + CHAR_W/2, y + row, color);
 	}
 }
 
-void draw_char_bar_top(int x, int y, int color){
+void draw_char_bar_top(int fb, int x, int y, int color){
 	for (int offset = 0; offset <= CHAR_W; ++offset){
-		hal_io_video_putpixel(x + offset, y , color);
+		hal_io_video_putpixel(fb, x + offset, y , color);
 	}
 }
 
-void draw_char_bar_btm(int x, int y, int color){
+void draw_char_bar_btm(int fb, int x, int y, int color){
 	for (int offset = 0; offset <= CHAR_W; ++offset){
-		hal_io_video_putpixel(x + offset, y + CHAR_H, color);
+		hal_io_video_putpixel(fb, x + offset, y + CHAR_H, color);
 	}
 }
 
-void draw_char_bar_mid(int x, int y, int color){
+void draw_char_bar_mid(int fb, int x, int y, int color){
 	for (int offset = 0; offset <= CHAR_W; ++offset){
-		hal_io_video_putpixel(x + offset, y + CHAR_H/2, color);
+		hal_io_video_putpixel(fb, x + offset, y + CHAR_H/2, color);
 	}
 }
 
-void draw_char_left_bar(int x, int y, int color){
+void draw_char_left_bar(int fb, int x, int y, int color){
 	for (int offset = 0; offset <= CHAR_W/2; ++offset){
-		hal_io_video_putpixel(x + offset, y + CHAR_H/2, color);
+		hal_io_video_putpixel(fb, x + offset, y + CHAR_H/2, color);
 	}
 }
 
-void draw_char_right_bar(int x, int y, int color){
+void draw_char_right_bar(int fb, int x, int y, int color){
 	for (int offset = CHAR_H/2; offset <= CHAR_W; ++offset){
-		hal_io_video_putpixel(x + offset, y + CHAR_H/2, color);
+		hal_io_video_putpixel(fb, x + offset, y + CHAR_H/2, color);
 	}
 }
 
-void draw_char_diag(int x, int y, int color, BOOL invert){
+void draw_char_diag(int fb, int x, int y, int color, BOOL invert){
 	if(invert){
-		draw_char_top_left_diag(x, y, color);
-		draw_char_btm_right_diag(x, y, color);
+		draw_char_top_left_diag(fb, x, y, color);
+		draw_char_btm_right_diag(fb, x, y, color);
 	} else {
-		draw_char_top_right_diag(x, y, color);
-		draw_char_btm_left_diag(x, y, color);
+		draw_char_top_right_diag(fb, x, y, color);
+		draw_char_btm_left_diag(fb, x, y, color);
 	}
 }
 
-void draw_char_top_right_diag(int x, int y, int color) {
+void draw_char_top_right_diag(int fb, int x, int y, int color) {
 	int row = 0;
 	for(int offset = CHAR_W; offset > CHAR_W/2; --offset){
-		hal_io_video_putpixel(x + offset, y + ++row, color);
+		hal_io_video_putpixel(fb, x + offset, y + ++row, color);
 	}
 }
 
-void draw_char_top_left_diag(int x, int y, int color) {
+void draw_char_top_left_diag(int fb, int x, int y, int color) {
 	for(int offset = 0; offset <= CHAR_W/2; ++offset)
-		hal_io_video_putpixel(x + offset, y + offset, 0);
+		hal_io_video_putpixel(fb, x + offset, y + offset, 0);
 }
 
-void draw_char_btm_left_diag(int x, int y, int color) {
+void draw_char_btm_left_diag(int fb, int x, int y, int color) {
 	int row = CHAR_H/2;
 	for(int offset = CHAR_W/2; offset > 0; --offset)
-		hal_io_video_putpixel(x + offset, y + ++row, 0);	
+		hal_io_video_putpixel(fb, x + offset, y + ++row, 0);	
 }
 
-void draw_char_btm_right_diag(int x, int y, int color) {
+void draw_char_btm_right_diag(int fb,int x, int y, int color) {
 	int row = CHAR_H/2;
 	for(int offset = CHAR_W/2; offset <= CHAR_W; ++offset){
-		hal_io_video_putpixel(x + offset, y + ++row, 0);
+		hal_io_video_putpixel(fb, x + offset, y + ++row, 0);
 	}
 }
 
-void draw_non_char(int x, int y, int color){
+void draw_non_char(int fb,int x, int y, int color){
 	for(int offsetX = 0; offsetX <= CHAR_W; ++offsetX){
 		for(int offsetY = 0; offsetY <= CHAR_H; ++offsetY){
-			hal_io_video_putpixel(x + offsetX, y + offsetY, color);
+			hal_io_video_putpixel(fb, x + offsetX, y + offsetY, color);
 		}
 	}
 }
 
-void draw_0(int x, int y, int color) {
-	draw_O(x, y, color);
-	draw_char_diag(x, y, color, BOOL_F);
+void draw_0(int fb,int x, int y, int color) {
+	draw_O(fb, x, y, color);
+	draw_char_diag(fb, x, y, color, BOOL_F);
 }
 
-void draw_1(int x, int y, int color) {
-	draw_char_pipe_mid(x, y, color);
+void draw_1(int fb,int x, int y, int color) {
+	draw_char_pipe_mid(fb, x, y, color);
 }
 
-void draw_A(int x, int y, int color){
-	draw_char_pipe_left(x, y, color);
-	draw_char_pipe_right(x, y, color);
-	draw_char_bar_mid(x, y, color);
-	draw_char_bar_top(x, y, color);
+void draw_A(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb, x, y, color);
+	draw_char_pipe_right(fb, x, y, color);
+	draw_char_bar_mid(fb, x, y, color);
+	draw_char_bar_top(fb, x, y, color);
 }
 
-void draw_B(int x, int y, int color){
-	draw_char_pipe_left(x, y, color);
-	draw_char_left_bar(x, y, color);
-	draw_char_bar_top(x, y, color);
-	draw_char_bar_btm(x, y, color);
-	draw_char_top_right_diag(x, y, color);
-	draw_char_btm_right_diag(x, y, color);
+void draw_B(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb, x, y, color);
+	draw_char_left_bar(fb, x, y, color);
+	draw_char_bar_top(fb, x, y, color);
+	draw_char_bar_btm(fb, x, y, color);
+	draw_char_top_right_diag(fb, x, y, color);
+	draw_char_btm_right_diag(fb, x, y, color);
 }
 
-void draw_C(int x, int y, int color){
-	draw_L(x,y,color);
-	draw_char_bar_top(x, y, color);
+void draw_C(int fb, int x, int y, int color){
+	draw_L(fb, x,y,color);
+	draw_char_bar_top(fb, x, y, color);
 }
 
-void draw_D(int x, int y, int color){
-	draw_char_pipe_left(x,y,color);
-	draw_char_btm_left_diag(x,y,color);
-	draw_char_top_left_diag(x,y,color);
+void draw_D(int fb, int x, int y, int color){
+	draw_char_pipe_left(fb,x,y,color);
+	draw_char_btm_left_diag(fb,x,y,color);
+	draw_char_top_left_diag(fb,x,y,color);
 }
 
-void draw_E(int x, int y, int color){
-	draw_F(x,y,color);
-	draw_char_bar_btm(x,y,color);
+void draw_E(int fb,int x, int y, int color){
+	draw_F(fb,x,y,color);
+	draw_char_bar_btm(fb,x,y,color);
 }
 
-void draw_F(int x, int y, int color){
-	draw_char_pipe_left(x,y,color);
-	draw_char_bar_top(x,y,color);
-	draw_char_left_bar(x,y,color);
+void draw_F(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb,x,y,color);
+	draw_char_bar_top(fb,x,y,color);
+	draw_char_left_bar(fb,x,y,color);
 }
 
-void draw_G(int x, int y, int color){
-	draw_C(x,y,color);
-	draw_char_btm_right_diag(x,y,color);
+void draw_G(int fb, int x, int y, int color){
+	draw_C(fb,x,y,color);
+	draw_char_btm_right_diag(fb,x,y,color);
 }
 
-void draw_H(int x, int y, int color){
-	draw_char_pipe_left(x, y, color);
-	draw_char_pipe_right(x, y, color);
-	draw_char_bar_mid(x, y, color);
+void draw_H(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb,x, y, color);
+	draw_char_pipe_right(fb,x, y, color);
+	draw_char_bar_mid(fb,x, y, color);
 }
 
-void draw_I(int x, int y, int color){
-	draw_char_pipe_mid(x, y, color);
-	draw_char_bar_top(x,y,color);
-	draw_char_bar_btm(x,y,color);
+void draw_I(int fb, int x, int y, int color){
+	draw_char_pipe_mid(fb, x, y, color);
+	draw_char_bar_top(fb, x,y,color);
+	draw_char_bar_btm(fb, x,y,color);
 }
 
-void draw_J(int x, int y, int color){
-	draw_char_pipe_right(x, y, color);
-	draw_char_bar_top(x,y,color);
-	draw_char_bar_btm(x,y,color);
-	draw_char_btm_left_diag(x,y,color);
+void draw_J(int fb, int x, int y, int color){
+	draw_char_pipe_right(fb, x, y, color);
+	draw_char_bar_top(fb,x,y,color);
+	draw_char_bar_btm(fb,x,y,color);
+	draw_char_btm_left_diag(fb,x,y,color);
 }
 
-void draw_K(int x, int y, int color){
-	draw_char_pipe_left(x, y, color);
-	draw_char_top_right_diag(x, y, color);
-	draw_char_btm_right_diag(x, y, color);
+void draw_K(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb, x, y, color);
+	draw_char_top_right_diag(fb, x, y, color);
+	draw_char_btm_right_diag(fb, x, y, color);
 }
 
-void draw_L(int x, int y, int color){
-	draw_char_pipe_left(x, y, color);
-	draw_char_bar_btm(x,y,color);
+void draw_L(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb, x, y, color);
+	draw_char_bar_btm(fb,x,y,color);
 }
 
-void draw_M(int x, int y, int color){
-	draw_char_pipe_left(x,y,color);
-	draw_char_pipe_right(x,y,color);
-	draw_char_top_left_diag(x,y,color);
-	draw_char_top_right_diag(x,y,color);
+void draw_M(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb, x,y,color);
+	draw_char_pipe_right(fb, x,y,color);
+	draw_char_top_left_diag(fb,x,y,color);
+	draw_char_top_right_diag(fb,x,y,color);
 }
 
-void draw_O(int x, int y, int color){
-	draw_C(x,y,color);
-	draw_char_pipe_right(x, y, color);
+void draw_O(int fb,int x, int y, int color){
+	draw_C(fb,x,y,color);
+	draw_char_pipe_right(fb,x, y, color);
 }
 
-void draw_N(int x, int y, int color){
-	draw_char_pipe_left(x, y, color);
-	draw_char_pipe_right(x, y, color);
-	draw_char_diag(x, y, color, BOOL_T);
+void draw_N(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb, x, y, color);
+	draw_char_pipe_right(fb, x, y, color);
+	draw_char_diag(fb, x, y, color, BOOL_T);
 }
 
-void draw_P(int x, int y, int color){
-	draw_F(x,y,color);
-	draw_char_top_right_diag(x,y,color);
+void draw_P(int fb,int x, int y, int color){
+	draw_F(fb, x,y,color);
+	draw_char_top_right_diag(fb, x,y,color);
 }
 
-void draw_Q(int x, int y, int color){
-	draw_O(x,y,color);
-	draw_char_btm_right_diag(x,y,color);
+void draw_Q(int fb,int x, int y, int color){
+	draw_O(fb,x,y,color);
+	draw_char_btm_right_diag(fb,x,y,color);
 }
 
-void draw_R(int x, int y, int color){
-	draw_P(x,y,color);
-	draw_char_btm_right_diag(x,y,color);
+void draw_R(int fb,int x, int y, int color){
+	draw_P(fb, x,y,color);
+	draw_char_btm_right_diag(fb, x,y,color);
 }
 
-void draw_S(int x, int y, int color){
-	draw_char_bar_top(x, y, color);
-	draw_char_bar_btm(x, y, color);
-	draw_char_diag(x, y, color, BOOL_T);
+void draw_S(int fb,int x, int y, int color){
+	draw_char_bar_top(fb, x, y, color);
+	draw_char_bar_btm(fb, x, y, color);
+	draw_char_diag(fb, x, y, color, BOOL_T);
 }
 
-void draw_T(int x, int y, int color){
-	draw_char_pipe_mid(x,y,color);
-	draw_char_bar_top(x,y,color);
+void draw_T(int fb,int x, int y, int color){
+	draw_char_pipe_mid(fb, x,y,color);
+	draw_char_bar_top(fb, x,y,color);
 }
 
-void draw_U(int x, int y, int color){
-	draw_char_pipe_left(x,y,color);
-	draw_char_pipe_right(x,y,color);
-	draw_char_bar_btm(x,y,color);
+void draw_U(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb, x,y,color);
+	draw_char_pipe_right(fb, x,y,color);
+	draw_char_bar_btm(fb, x,y,color);
 }
 
-void draw_V(int x, int y, int color){
-	draw_char_pipe_left(x,y,color);
-	draw_char_diag(x,y,color,BOOL_F);
+void draw_V(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb, x,y,color);
+	draw_char_diag(fb, x,y,color,BOOL_F);
 }
 
-void draw_W(int x, int y, int color){
-	draw_char_pipe_left(x,y,color);
-	draw_char_pipe_right(x,y,color);
-	draw_char_btm_left_diag(x,y,color);
-	draw_char_btm_right_diag(x,y,color);
+void draw_W(int fb,int x, int y, int color){
+	draw_char_pipe_left(fb, x,y,color);
+	draw_char_pipe_right(fb, x,y,color);
+	draw_char_btm_left_diag(fb, x,y,color);
+	draw_char_btm_right_diag(fb, x,y,color);
 }
 
-void draw_X(int x, int y, int color){
-	draw_char_diag(x,y,color,BOOL_T);
-	draw_char_diag(x,y,color,BOOL_F);
+void draw_X(int fb,int x, int y, int color){
+	draw_char_diag(fb, x,y,color,BOOL_T);
+	draw_char_diag(fb, x,y,color,BOOL_F);
 }
 
-void draw_Y(int x, int y, int color){
-	draw_char_pipe_mid(x,y,color);
-	draw_char_top_left_diag(x,y,color);
-	draw_char_top_right_diag(x,y,color);
+void draw_Y(int fb,int x, int y, int color){
+	draw_char_pipe_mid(fb, x,y,color);
+	draw_char_top_left_diag(fb, x,y,color);
+	draw_char_top_right_diag(fb, x,y,color);
 }
 
-void draw_Z(int x, int y, int color){
-	draw_char_bar_top(x,y,color);
-	draw_char_bar_btm(x,y,color);
-	draw_char_bar_mid(x,y,color);
-	draw_char_diag(x, y, color, BOOL_F);
+void draw_Z(int fb,int x, int y, int color){
+	draw_char_bar_top(fb, x, y, color);
+	draw_char_bar_btm(fb, x, y, color);
+	draw_char_bar_mid(fb, x, y, color);
+	draw_char_diag(fb, x, y, color, BOOL_F);
 }
 
-void cursor_drawc(int character){
-	hal_io_video_putc(cursor_x, cursor_y, 0, character);
+void cursor_drawc(int fb, int character){
+	hal_io_video_putc(fb, cursor_x, cursor_y, 0, character);
 	if(character != '\n' && character != '\r')
 		cursor_forwd();
 }
@@ -529,14 +532,14 @@ void cursor_newln(){
 	cursor_y += (CHAR_H + 2);
 }
 
-void draw_os_name_to_video(){
-	cursor_drawc('C');
-	cursor_drawc('H');
-	cursor_drawc('O');
-	cursor_drawc('N');
-	cursor_drawc('K');
+void draw_os_name_to_video(int fb){
+	cursor_drawc(fb, 'C');
+	cursor_drawc(fb, 'H');
+	cursor_drawc(fb, 'O');
+	cursor_drawc(fb, 'N');
+	cursor_drawc(fb, 'K');
 	cursor_forwd();
-	cursor_drawc('O');
-	cursor_drawc('S');
+	cursor_drawc(fb, 'O');
+	cursor_drawc(fb, 'S');
 	cursor_newln();
 }
