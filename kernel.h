@@ -47,9 +47,13 @@ enum
 
 
 //CURSOR INPUT
-void cursor_drawc(int, int);
-void cursor_forwd(void); 
+void cursor_drawc(int, int, int);
+void cursor_forwd(void);
+void cursor_bkwrd(void);
+void cursor_bkspc(int,int,int);
 void cursor_newln(void);
+void cursor_reset(void);
+void clear_char(int,int,int);
 
 //CHARACTER PARTS
 void draw_char_bar_top(int,int,int,int);
@@ -60,6 +64,7 @@ void draw_char_right_bar(int,int,int,int);
 void draw_char_pipe_left(int,int,int,int);
 void draw_char_pipe_right(int,int,int,int);
 void draw_char_pipe_mid(int,int,int,int);
+void draw_char_pipe_half(int,int,int,int);
 void draw_char_diag(int,int,int,int,BOOL);
 void draw_char_top_left_diag(int,int,int,int);
 void draw_char_top_right_diag(int,int,int,int);
@@ -67,7 +72,8 @@ void draw_char_btm_left_diag(int,int,int,int);
 void draw_char_btm_right_diag(int,int,int,int);
 
 //CHARACTERS
-void draw_non_char(int,int, int, int);
+void draw_non_char(int,int,int,int);
+void draw_full_box(int,int,int,int);
 void draw_0(int,int,int,int);
 void draw_1(int,int,int,int);
 void draw_A(int,int,int,int);

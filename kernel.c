@@ -15,6 +15,16 @@
 
 #define CHAR_W 15
 #define CHAR_H 17
+#define SCRN_W 1280 //not really, but theres two mem slots per each of the 640 pixels of the width
+#define SRCN_H 420
+
+#define BLK 0b0000000000000000
+#define WHT 0b1111111111111111
+#define BLU 0b0000000000011111
+#define RED 0b1111100000000000
+#define GRN 0b0000011111100000
+
+void delay(int32_t);
 
 //uart
 void uart_init(void);
@@ -25,7 +35,7 @@ uint8_t uart_getc();
 uint32_t memory_read(uint32_t);
 void memory_write(uint32_t, uint32_t );
 
-void delay(int32_t);
+//assembly functions
 uint32_t _video_init(void);
 void _v_draw_pixel(uint32_t,uint32_t,uint32_t,uint32_t);
 
@@ -39,7 +49,8 @@ uint32_t hal_io_video_init(void);
 void hal_io_video_putpixel(int,int,int,int);
 void hal_io_video_putc(int,int, int,int,uint8_t);
 
-void draw_os_name_to_video(int);
+//convenience
+void draw_os_name_to_video(int,int);
 
 /*
  *		Kernel's entry point
@@ -47,19 +58,18 @@ void draw_os_name_to_video(int);
 **/
 
 int cursor_x = CHAR_W + CHAR_W/2;
-int cursor_y = 0;
+int cursor_y = CHAR_H/2;
 
 void main(uint32_t r0, uint32_t r1, uint32_t atags){
 
 	uint32_t fb = hal_io_video_init();
-
-	draw_os_name_to_video(fb);
+	draw_os_name_to_video(fb, BLU);
 
 	//Begin the one-line typewriter
 	hal_io_serial_init();
 	while (1){
 		char c = hal_io_serial_getc();
-		cursor_drawc(fb, c);
+		cursor_drawc(fb, c, RED);
 		hal_io_serial_putc(c);
 	}
 }
@@ -74,6 +84,9 @@ void hal_io_video_putpixel(int fb, int x, int y, int color){
 
 void hal_io_video_putc(int fb, int x, int y, int color, uint8_t character){
 	switch(character){
+		case'\b':
+		    cursor_bkspc(fb, x, y);
+		    break;
 		case ' ':
 			break;
 		case '\n':
@@ -163,6 +176,9 @@ void hal_io_video_putc(int fb, int x, int y, int color, uint8_t character){
 			break;
 		case '1':
 			draw_1(fb, x, y, color);
+			break;
+		case '`':
+			draw_full_box(fb, x, y, color);
 			break;
 		default:
 			draw_non_char(fb, x, y, color);
@@ -271,6 +287,7 @@ void draw_char_pipe_left(int fb, int x, int y, int color){
 }
 
 void draw_char_pipe_right(int fb, int x, int y, int color){
+	x-=1;
 	for (int row = 0; row < CHAR_H; ++row) {
 		hal_io_video_putpixel(fb, x + CHAR_W, y + row, color);
 	}
@@ -278,36 +295,42 @@ void draw_char_pipe_right(int fb, int x, int y, int color){
 
 void draw_char_pipe_mid(int fb, int x, int y, int color){
 	for (int row = 0; row <= CHAR_H; ++row) {
-		hal_io_video_putpixel(fb, x + CHAR_W/2, y + row, color);
+		hal_io_video_putpixel(fb, x + (CHAR_W/2)-1, y + row, color);
+	}
+}
+
+void draw_char_pipe_half(int fb, int x, int y, int color){
+	for (int row = CHAR_H; row >= CHAR_H/2; --row) {
+		hal_io_video_putpixel(fb, x + (CHAR_W/2)-1, y + row, color);
 	}
 }
 
 void draw_char_bar_top(int fb, int x, int y, int color){
-	for (int offset = 0; offset <= CHAR_W; ++offset){
+	for (int offset = 0; offset <= CHAR_W; offset+=2){
 		hal_io_video_putpixel(fb, x + offset, y , color);
 	}
 }
 
 void draw_char_bar_btm(int fb, int x, int y, int color){
-	for (int offset = 0; offset <= CHAR_W; ++offset){
+	for (int offset = 0; offset <= CHAR_W; offset+=2){
 		hal_io_video_putpixel(fb, x + offset, y + CHAR_H, color);
 	}
 }
 
 void draw_char_bar_mid(int fb, int x, int y, int color){
-	for (int offset = 0; offset <= CHAR_W; ++offset){
+	for (int offset = 0; offset <= CHAR_W; offset+=2){
 		hal_io_video_putpixel(fb, x + offset, y + CHAR_H/2, color);
 	}
 }
 
 void draw_char_left_bar(int fb, int x, int y, int color){
-	for (int offset = 0; offset <= CHAR_W/2; ++offset){
+	for (int offset = 0; offset <= CHAR_W/2; offset+=2){
 		hal_io_video_putpixel(fb, x + offset, y + CHAR_H/2, color);
 	}
 }
 
 void draw_char_right_bar(int fb, int x, int y, int color){
-	for (int offset = CHAR_H/2; offset <= CHAR_W; ++offset){
+	for (int offset = CHAR_H/2; offset <= CHAR_W; offset+=2){
 		hal_io_video_putpixel(fb, x + offset, y + CHAR_H/2, color);
 	}
 }
@@ -323,33 +346,44 @@ void draw_char_diag(int fb, int x, int y, int color, BOOL invert){
 }
 
 void draw_char_top_right_diag(int fb, int x, int y, int color) {
-	int row = 0;
-	for(int offset = CHAR_W; offset > CHAR_W/2; --offset){
+	for(int offset = CHAR_H/2, row = (CHAR_W/2)+1; row > 0; offset+=2){
+		hal_io_video_putpixel(fb, x + offset, y + --row, color);
+		hal_io_video_putpixel(fb, x + offset, y + --row, color);
+	}	
+}
+
+void draw_char_top_left_diag(int fb, int x, int y, int color) {
+	for(int offset = 0, row = 0; row < CHAR_H/2; offset+=2){
+		hal_io_video_putpixel(fb, x + offset, y + ++row, color);
+		hal_io_video_putpixel(fb, x + offset, y + ++row, color);
+	}		
+}
+
+void draw_char_btm_left_diag(int fb, int x, int y, int color) {
+	for(int offset = 0, row = CHAR_H; row > CHAR_H/2; offset+=2){
+		hal_io_video_putpixel(fb, x + offset, y + --row, color);
+		hal_io_video_putpixel(fb, x + offset, y + --row, color);
+	}
+}
+
+void draw_char_btm_right_diag(int fb,int x, int y, int color) {
+	for(int offset = (CHAR_W/2)-1, row = (CHAR_W/2)-1; offset < CHAR_W; offset+=2){
+		hal_io_video_putpixel(fb, x + offset, y + ++row, color);
 		hal_io_video_putpixel(fb, x + offset, y + ++row, color);
 	}
 }
 
-void draw_char_top_left_diag(int fb, int x, int y, int color) {
-	for(int offset = 0; offset <= CHAR_W/2; ++offset)
-		hal_io_video_putpixel(fb, x + offset, y + offset, 0);
-}
-
-void draw_char_btm_left_diag(int fb, int x, int y, int color) {
-	int row = CHAR_H/2;
-	for(int offset = CHAR_W/2; offset > 0; --offset)
-		hal_io_video_putpixel(fb, x + offset, y + ++row, 0);	
-}
-
-void draw_char_btm_right_diag(int fb,int x, int y, int color) {
-	int row = CHAR_H/2;
-	for(int offset = CHAR_W/2; offset <= CHAR_W; ++offset){
-		hal_io_video_putpixel(fb, x + offset, y + ++row, 0);
+void draw_non_char(int fb,int x, int y, int color){
+	for(int offsetX = 0; offsetX <= CHAR_W; offsetX+=2){
+		for(int offsetY = 0; offsetY <= CHAR_H; ++offsetY){
+			hal_io_video_putpixel(fb, x + offsetX, y + offsetY, color);
+		}
 	}
 }
 
-void draw_non_char(int fb,int x, int y, int color){
-	for(int offsetX = 0; offsetX <= CHAR_W; ++offsetX){
-		for(int offsetY = 0; offsetY <= CHAR_H; ++offsetY){
+void draw_full_box(int fb,int x, int y, int color){
+	for(int offsetX = -(CHAR_W/2); offsetX <= CHAR_W + (CHAR_W/2); offsetX+=2){
+		for(int offsetY = -2; offsetY <= CHAR_H + 2; ++offsetY){
 			hal_io_video_putpixel(fb, x + offsetX, y + offsetY, color);
 		}
 	}
@@ -409,8 +443,8 @@ void draw_G(int fb, int x, int y, int color){
 
 void draw_H(int fb,int x, int y, int color){
 	draw_char_pipe_left(fb,x, y, color);
-	draw_char_pipe_right(fb,x, y, color);
 	draw_char_bar_mid(fb,x, y, color);
+	draw_char_pipe_right(fb,x, y, color);
 }
 
 void draw_I(int fb, int x, int y, int color){
@@ -505,7 +539,7 @@ void draw_X(int fb,int x, int y, int color){
 }
 
 void draw_Y(int fb,int x, int y, int color){
-	draw_char_pipe_mid(fb, x,y,color);
+	draw_char_pipe_half(fb, x,y,color);
 	draw_char_top_left_diag(fb, x,y,color);
 	draw_char_top_right_diag(fb, x,y,color);
 }
@@ -517,14 +551,37 @@ void draw_Z(int fb,int x, int y, int color){
 	draw_char_diag(fb, x, y, color, BOOL_F);
 }
 
-void cursor_drawc(int fb, int character){
-	hal_io_video_putc(fb, cursor_x, cursor_y, 0, character);
+void cursor_drawc(int fb, int character, int color){
+	if((cursor_x + CHAR_W + (CHAR_W / 2) >= SCRN_W)) { //if the next char would draw off the right edge of the screen 
+		cursor_newln();
+	}
+	hal_io_video_putc(fb, cursor_x, cursor_y, color, character);
 	if(character != '\n' && character != '\r')
 		cursor_forwd();
 }
 
+void clear_char(int fb, int x, int y){
+	for(int offset = 0, row = 0; offset <=CHAR_W && row <=CHAR_H; offset+=2, ++row){
+		_v_draw_pixel(fb, x + offset, y + row, BLK);
+	}
+}
+
+void cursor_bkwrd(){
+	if(cursor_x <= (CHAR_W + CHAR_W/2)){
+		return; //TODO:Bring the cursor to the end of the prev line
+	}
+	cursor_x -= (CHAR_W + (CHAR_W / 2));
+}
+
+void cursor_bkspc(int fb, int x, int y){
+	cursor_bkwrd();
+	clear_char(fb, x, y);
+}
+
 void cursor_forwd(){
 	cursor_x += CHAR_W + (CHAR_W / 2);
+	if(cursor_x >= SCRN_W)
+	cursor_newln();
 }
 
 void cursor_newln(){
@@ -532,14 +589,19 @@ void cursor_newln(){
 	cursor_y += (CHAR_H + 2);
 }
 
-void draw_os_name_to_video(int fb){
-	cursor_drawc(fb, 'C');
-	cursor_drawc(fb, 'H');
-	cursor_drawc(fb, 'O');
-	cursor_drawc(fb, 'N');
-	cursor_drawc(fb, 'K');
+void draw_os_name_to_video(int fb, int color){
+	cursor_drawc(fb, 'C', color);
+	cursor_drawc(fb, 'H', color);
+	cursor_drawc(fb, 'O', color);
+	cursor_drawc(fb, 'N', color);
+	cursor_drawc(fb, 'K', color);
 	cursor_forwd();
-	cursor_drawc(fb, 'O');
-	cursor_drawc(fb, 'S');
+	cursor_drawc(fb, 'O', color);
+	cursor_drawc(fb, 'S', color);
 	cursor_newln();
+}
+
+void cursor_reset(){
+	cursor_x = CHAR_W + CHAR_W/2;
+	cursor_y = CHAR_H/2;
 }

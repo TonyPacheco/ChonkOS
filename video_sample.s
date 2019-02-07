@@ -159,8 +159,8 @@ _v_draw_pixel:
     color .req r3
 	width .req r4
 	pixl  .req r5
-
-    ldr color, =#0xFFFFFFFF
+    
+    @ldr color, =#0xFFFFFFFF
 	ldr width, =#1280
 
 	mul pixl, iny, width
