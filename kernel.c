@@ -57,19 +57,19 @@ void draw_os_name_to_video(int,int);
  *
 **/
 
-int cursor_x = CHAR_W + CHAR_W/2;
-int cursor_y = CHAR_H/2;
+int cursor_x;
+int cursor_y;
 
 void main(uint32_t r0, uint32_t r1, uint32_t atags){
 
-	uint32_t fb = hal_io_video_init();
-	draw_os_name_to_video(fb, BLU);
+	uint32_t fb = hal_io_video_init(); //Gets frame buffers location
+	cursor_reset();					   //Brings the cursor to the start of the terminal screen
+	draw_os_name_to_video(fb, BLU);    
 
-	//Begin the one-line typewriter
 	hal_io_serial_init();
-	while (1){
-		char c = hal_io_serial_getc();
-		cursor_drawc(fb, c, RED);
+	while (BOOL_T){
+		char c = hal_io_serial_getc(); 
+		cursor_drawc(fb, c, WHT);
 		hal_io_serial_putc(c);
 	}
 }
@@ -83,6 +83,8 @@ void hal_io_video_putpixel(int fb, int x, int y, int color){
 }
 
 void hal_io_video_putc(int fb, int x, int y, int color, uint8_t character){
+	//TODO: Replace this with something more elegant
+	//ie one function which draws anything given a bit mask
 	switch(character){
 		case'\b':
 		    cursor_bkspc(fb, x, y);
@@ -551,6 +553,10 @@ void draw_Z(int fb,int x, int y, int color){
 	draw_char_diag(fb, x, y, color, BOOL_F);
 }
 
+/*
+ * Draws a character at the current postiton of the cursor, 
+ * and then moves the cursor forward on spot 
+*/
 void cursor_drawc(int fb, int character, int color){
 	if((cursor_x + CHAR_W + (CHAR_W / 2) >= SCRN_W)) { //if the next char would draw off the right edge of the screen 
 		cursor_newln();
@@ -561,27 +567,26 @@ void cursor_drawc(int fb, int character, int color){
 }
 
 void clear_char(int fb, int x, int y){
-	for(int offset = 0, row = 0; offset <=CHAR_W && row <=CHAR_H; offset+=2, ++row){
-		_v_draw_pixel(fb, x + offset, y + row, BLK);
-	}
+	draw_non_char(fb, x, y, BLK);
 }
 
 void cursor_bkwrd(){
-	if(cursor_x <= (CHAR_W + CHAR_W/2)){
+	if(cursor_x < (CHAR_W + CHAR_W/2)){
 		return; //TODO:Bring the cursor to the end of the prev line
 	}
-	cursor_x -= (CHAR_W + (CHAR_W / 2));
+	cursor_x -= CHAR_W + CHAR_W/2;
 }
 
 void cursor_bkspc(int fb, int x, int y){
 	cursor_bkwrd();
-	clear_char(fb, x, y);
+	clear_char(fb, cursor_x, cursor_y);
+	cursor_bkwrd();
 }
 
 void cursor_forwd(){
 	cursor_x += CHAR_W + (CHAR_W / 2);
 	if(cursor_x >= SCRN_W)
-	cursor_newln();
+		cursor_newln();
 }
 
 void cursor_newln(){
@@ -590,6 +595,8 @@ void cursor_newln(){
 }
 
 void draw_os_name_to_video(int fb, int color){
+
+	cursor_newln();
 	cursor_drawc(fb, 'C', color);
 	cursor_drawc(fb, 'H', color);
 	cursor_drawc(fb, 'O', color);
