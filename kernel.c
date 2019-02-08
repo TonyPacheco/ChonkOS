@@ -21,6 +21,7 @@
 #define BLK 0b0000000000000000
 #define WHT 0b1111111111111111
 #define BLU 0b0000000000011111
+#define LBL 0b0000001111111111
 #define RED 0b1111100000000000
 #define GRN 0b0000011111100000
 
@@ -64,7 +65,7 @@ void main(uint32_t r0, uint32_t r1, uint32_t atags){
 
 	uint32_t fb = hal_io_video_init(); //Gets frame buffers location
 	cursor_reset();					   //Brings the cursor to the start of the terminal screen
-	draw_os_name_to_video(fb, BLU);    
+	draw_os_name_to_video(fb, LBL);    
 
 	hal_io_serial_init();
 	while (BOOL_T){
